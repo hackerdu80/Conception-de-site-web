@@ -1,5 +1,5 @@
 <?php
-$titre = $titre ?? 'La Brute';
+$titre ='La Brute';
 ?>
 <!doctype html>
 <html lang="fr">

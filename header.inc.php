@@ -1,5 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $titre = 'La Brute';
+$estConnecte = !empty($_SESSION['pseudo']);
+$pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
 ?>
 <!doctype html>
 <html lang="fr">
@@ -25,9 +31,18 @@ $titre = 'La Brute';
                     <li class="nav-item"><a class="nav-link" href="listeBrutes.php">Liste des brutes</a></li>
                     <li class="nav-item"><a class="nav-link" href="listeDefis.php">Liste des défis</a></li>
                 </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="inscription.php">Inscription</a></li>
-                    <li class="nav-item"><a class="nav-link" href="connexion.php">Connexion</a></li>
+                <ul class="navbar-nav align-items-center gap-2">
+                    <?php if ($estConnecte): ?>
+                        <li class="nav-item">
+                            <span class="nav-link text-white-50 mb-0">Bienvenue, <?= htmlspecialchars($pseudoJoueur, ENT_QUOTES, 'UTF-8') ?></span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm" href="deconnexion.php">Déconnexion</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item"><a class="nav-link" href="connexion.php">Connexion</a></li>
+                        <li class="nav-item"><a class="nav-link" href="inscription.php">Inscription</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

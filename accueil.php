@@ -17,8 +17,6 @@ require __DIR__ . '/header.inc.php';
 <section class="presentation text-center p-4 p-md-5 mb-4" aria-labelledby="titre-accueil">
     <h1 id="titre-accueil" class="display-5 fw-bold">Bienvenue dans l'Arène !</h1>
     <p class="lead mb-3">Crée ta brute, propose des défis et affronte d'autres joueurs dans des combats automatiques sans merci.</p>
-    <!-- Le visiteur doit d'abord créer son compte. -->
-    <a class="btn btn-primary btn-lg" href="inscription.php">Créer ma Brute</a>
 </section>
 
 <div class="row g-4">

@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 $titre = 'Inscription';
 require __DIR__ . '/header.inc.php';
 ?>
@@ -26,20 +25,15 @@ require __DIR__ . '/header.inc.php';
                         <?php unset($_SESSION['message']); ?>
                     <?php endif; ?>
 
-                    <form method="post" action="tt_inscription.php" novalidate>
+                    <form method="post" action="tt_inscription.php">
                         <div class="mb-3">
                             <label for="pseudo" class="form-label">Pseudo</label>
-                            <input type="text" id="pseudo" name="pseudo" class="form-control" maxlength="50" required>
+                            <input type="text" id="pseudo" name="pseudo" class="form-control" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="mot_de_passe" class="form-label">Mot de passe</label>
-                            <input type="password" id="mot_de_passe" name="mot_de_passe" class="form-control" minlength="8" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="mot_de_passe_confirmation" class="form-label">Confirmer le mot de passe</label>
-                            <input type="password" id="mot_de_passe_confirmation" name="mot_de_passe_confirmation" class="form-control" minlength="8" required>
+                            <input type="password" id="mot_de_passe" name="mot_de_passe" class="form-control" required>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">S’inscrire</button>

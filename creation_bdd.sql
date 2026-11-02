@@ -1,19 +1,22 @@
 CREATE TABLE Joueur (
-    pseudo VARCHAR(50) PRIMARY KEY,
+    id_joueur INT AUTO_INCREMENT PRIMARY KEY,
+    pseudo VARCHAR(50) NOT NULL,
     mot_de_passe_hash VARCHAR(255) NOT NULL,
-    date_inscription DATETIME NOT NULL
+    date_inscription DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 CREATE TABLE Brute (
     id_brute INT AUTO_INCREMENT PRIMARY KEY,
-    pseudo_joueur VARCHAR(50) NOT NULL,
+    id_joueur INT NOT NULL,
     nom VARCHAR(100) NOT NULL,
     description VARCHAR(255),
     avatar VARCHAR(255),
     points_de_vie INT NOT NULL,
     force_brute INT NOT NULL,
     defense INT NOT NULL,
-    FOREIGN KEY (pseudo_joueur) REFERENCES Joueur(pseudo) ON DELETE CASCADE
+    FOREIGN KEY (id_joueur) REFERENCES Joueur(id_joueur) ON DELETE CASCADE
 );
 
 CREATE TABLE Defi (

@@ -12,7 +12,7 @@ $dernieresBrutes = [
     ['nom' => 'Valkyrie'],
 ];
 
-require __DIR__ . '/header.php';
+require __DIR__ . '/header.inc.php';
 ?>
 <section class="presentation text-center p-4 p-md-5 mb-4" aria-labelledby="titre-accueil">
     <h1 id="titre-accueil" class="display-5 fw-bold">Bienvenue dans l'Arène !</h1>
@@ -72,4 +72,4 @@ require __DIR__ . '/header.php';
         <p class="small text-secondary mt-2">Aperçus de démonstration.</p>
     </aside>
 </div>
-<?php require __DIR__ . '/footer.php'; ?>
+<?php require __DIR__ . '/footer.inc.php'; ?>

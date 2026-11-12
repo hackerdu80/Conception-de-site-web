@@ -32,7 +32,7 @@ require __DIR__ . '/header.inc.php';
                         <?php unset($_SESSION['message']); ?>
                     <?php endif; ?>
 
-                    <form method="post" action="tt_brute.php">
+                    <form method="post" action="tt_brute.php" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="nom" class="form-label">Nom de la brute</label>
                             <input type="text" id="nom" name="nom" class="form-control" maxlength="100" required>
@@ -45,13 +45,8 @@ require __DIR__ . '/header.inc.php';
 
                         <div class="mb-3">
                             <label for="avatar" class="form-label">Avatar</label>
-                            <select id="avatar" name="avatar" class="form-select" required>
-                                <option value="">Choisir un avatar</option>
-                                <option value="avatar1.png">Avatar 1</option>
-                                <option value="avatar2.png">Avatar 2</option>
-                                <option value="avatar3.png">Avatar 3</option>
-                                <option value="avatar4.png">Avatar 4</option>
-                            </select>
+                            <input type="file" id="avatar" name="avatar" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" required>
+                            <div class="form-text">Formats acceptés : PNG, JPG, JPEG, GIF, WEBP. Taille max : 2 Mo.</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">Créer ma brute</button>

@@ -4,8 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $titre = 'La Brute';
-$estConnecte = !empty($_SESSION['pseudo']);
-$pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
+$estConnecte = !empty($_SESSION['pseudo']) || !empty($_SESSION['id_joueur']);
+$pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo']) : '';
 ?>
 <!doctype html>
 <html lang="fr">
@@ -21,7 +21,7 @@ $pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
 <header>
     <nav class="navbar navbar-expand-md bg-dark" data-bs-theme="dark" aria-label="Navigation principale">
         <div class="container-fluid">
-            <a class="navbar-brand" href="accueil.php">La Brute</a>
+            <a class="navbar-brand" href="index.php">La Brute</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigation" aria-controls="navigation" aria-expanded="false" aria-label="Afficher le menu">
                 <span class="navbar-toggler-icon"></span>
             </button>

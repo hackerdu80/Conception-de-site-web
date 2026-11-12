@@ -10,83 +10,43 @@
 <?php
 session_start();
 
-$connexion = mysqli_connect($serveur, $utilisateur, $motdepasse, $base);
+try {
+    $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
+    $pdo = new PDO($dsn, $user, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 
-if (!$connexion) {
-    die("Erreur de connexion à la base de données : " . mysqli_connect_error());
+    $table = 'Brute';
+    // Recupération du pseudo de l'utilisateur connecté
+    $pseudoJoueur = $_SESSION['pseudo'] ?? '';
+    // Tirage au hasard de la force de la brute entre 5 et 8
+    $forceBrute = random_int(5, 8);
+    // Calcul de la défense de la brute
+    $defense = 10 - $forceBrute;
+
+    $sql = "INSERT INTO `$table` (pseudo_joueur, nom, description, avatar, points_de_vie, force_brute, defense) VALUES (:pseudo_joueur, :nom, :description, :avatar, 30, :force_brute, :defense)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        'pseudo_joueur' => $pseudoJoueur,
+        'nom' => $_POST['nom'] ?? '',
+        'description' => $_POST['Description'] ?? '',
+        'avatar' => $_POST['avatar'] ?? '',
+        'force_brute' => $forceBrute,
+        'defense' => $defense,
+    ]);
+
+    // Redirection vers la page d'accueil après la création de la brute
+    $_SESSION['message'] = 'Brute créée avec succès !';
+    header('Location: index.php');
+    exit;
+
 }
-
-$message = "";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $pseudo_joueur = trim($_POST['pseudo_joueur'] ?? '');
-    $nom = trim($_POST['nom'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $avatar = trim($_POST['avatar'] ?? '');
-
-    $points_de_vie = 100;
-    $force_brute = 10;
-    $defense = 5;
-
-    if ($pseudo_joueur === '' || $nom === '' || $description === '' || $avatar === '') {
-        $message = "Veuillez remplir tous les champs obligatoires.";
-    } else {
-        $pseudo_joueur = mysqli_real_escape_string($connexion, $pseudo_joueur);
-        $nom = mysqli_real_escape_string($connexion, $nom);
-        $description = mysqli_real_escape_string($connexion, $description);
-        $avatar = mysqli_real_escape_string($connexion, $avatar);
-
-        $requete = "INSERT INTO tt_brute (pseudo_joueur, nom, description, avatar, points_de_vie, force_brute, defense)
-                    VALUES ('$pseudo_joueur', '$nom', '$description', '$avatar', '$points_de_vie', '$force_brute', '$defense')";
-
-        if (mysqli_query($connexion, $requete)) {
-            $message = "Votre brute a bien été créée.";
-        } else {
-            $message = "Erreur lors de la création de la brute : " . mysqli_error($connexion);
-        }
-    }
+catch (Throwable $e) {
+    $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();
+    header('Location: connexion.php');
+    exit;
 }
-?>
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Créer une brute</title>
-</head>
-<body>
-    <h1>Créer une brute</h1>
-
-    <?php if ($message !== "") : ?>
-        <p><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
-    <?php endif; ?>
-
-    <form method="POST" action="tt_brute.php">
-        <label for="pseudo_joueur">Pseudo du joueur :</label><br>
-        <input type="text" name="pseudo_joueur" id="pseudo_joueur" value="<?php echo htmlspecialchars($_SESSION['pseudo'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required><br><br>
-
-        <label for="nom">Nom de la brute :</label><br>
-        <input type="text" name="nom" id="nom" required><br><br>
-
-        <label for="description">Description :</label><br>
-        <textarea name="description" id="description" rows="4" required></textarea><br><br>
-
-        <label for="avatar">Choisir un avatar :</label><br>
-        <select name="avatar" id="avatar" required>
-            <option value="">-- Choisir un avatar --</option>
-            <option value="avatar1.png">Avatar 1</option>
-            <option value="avatar2.png">Avatar 2</option>
-            <option value="avatar3.png">Avatar 3</option>
-            <option value="avatar4.png">Avatar 4</option>
-        </select><br><br>
-
-        <input type="submit" value="Créer la brute">
-    </form>
-</body>
-</html>
-
-<?php
-mysqli_close($connexion);
 ?>
 
 

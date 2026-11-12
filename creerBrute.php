@@ -7,6 +7,32 @@ if (empty($_SESSION['id_joueur']) && empty($_SESSION['pseudo'])) {
     exit;
 }
 
+$avatarDir = __DIR__ . '/uploads/avatars';
+$avatarsDisponibles = [];
+if (is_dir($avatarDir)) {
+    $fichiers = glob($avatarDir . '/*');
+    if (is_array($fichiers)) {
+        foreach ($fichiers as $fichier) {
+            if (is_file($fichier)) {
+                $extension = strtolower(pathinfo($fichier, PATHINFO_EXTENSION));
+                if (in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'], true)) {
+                    $avatarsDisponibles[] = 'uploads/avatars/' . basename($fichier);
+                }
+            }
+        }
+    }
+}
+
+sort($avatarsDisponibles, SORT_STRING);
+
+if ($avatarsDisponibles === []) {
+    $avatarsDisponibles = [
+        'uploads/avatars/avatar1.svg',
+        'uploads/avatars/avatar2.svg',
+        'uploads/avatars/avatar3.svg',
+    ];
+}
+
 $titre = 'Créer ma brute';
 require __DIR__ . '/header.inc.php';
 ?>
@@ -32,7 +58,7 @@ require __DIR__ . '/header.inc.php';
                         <?php unset($_SESSION['message']); ?>
                     <?php endif; ?>
 
-                    <form method="post" action="tt_brute.php" enctype="multipart/form-data">
+                    <form method="post" action="tt_brute.php">
                         <div class="mb-3">
                             <label for="nom" class="form-label">Nom de la brute</label>
                             <input type="text" id="nom" name="nom" class="form-control" maxlength="100" required>
@@ -44,9 +70,14 @@ require __DIR__ . '/header.inc.php';
                         </div>
 
                         <div class="mb-3">
-                            <label for="avatar" class="form-label">Avatar</label>
-                            <input type="file" id="avatar" name="avatar" class="form-control" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" required>
-                            <div class="form-text">Formats acceptés : PNG, JPG, JPEG, GIF, WEBP. Taille max : 2 Mo.</div>
+                            <label for="avatar" class="form-label">Avatar disponible</label>
+                            <select id="avatar" name="avatar" class="form-select" required>
+                                <option value="">Choisir un avatar</option>
+                                <?php foreach ($avatarsDisponibles as $avatar): ?>
+                                    <option value="<?= htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(basename($avatar), ENT_QUOTES, 'UTF-8') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">Choisissez uniquement parmi les avatars disponibles.</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">Créer ma brute</button>

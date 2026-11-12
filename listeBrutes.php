@@ -41,9 +41,13 @@ require __DIR__ . '/header.inc.php';
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
-                                    <?= htmlspecialchars(substr($brute['nom'], 0, 1), ENT_QUOTES, 'UTF-8') ?>
-                                </div>
+                                <?php if (!empty($brute['avatar'])): ?>
+                                    <img src="<?= htmlspecialchars($brute['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar de <?= htmlspecialchars($brute['nom'], ENT_QUOTES, 'UTF-8') ?>" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
+                                <?php else: ?>
+                                    <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                                        <?= htmlspecialchars(substr($brute['nom'], 0, 1), ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                <?php endif; ?>
                                 <div>
                                     <h2 class="h5 mb-1"><?= htmlspecialchars($brute['nom'], ENT_QUOTES, 'UTF-8') ?></h2>
                                     <small class="text-muted">Propriétaire : <?= htmlspecialchars($brute['pseudo_joueur'], ENT_QUOTES, 'UTF-8') ?></small>
@@ -58,7 +62,7 @@ require __DIR__ . '/header.inc.php';
                                 <div>Défense : <?= (int) $brute['defense'] ?></div>
                             </div>
 
-                            <span class="badge bg-secondary">Avatar : <?= htmlspecialchars($brute['avatar'] ?? 'Aucun', ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="badge bg-secondary">Avatar</span>
                         </div>
                     </div>
                 </div>

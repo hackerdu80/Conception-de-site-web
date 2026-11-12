@@ -1,5 +1,3 @@
---Accéder à la base de données
-
 <?php
     $host = "localhost";
     $user = "grp_6_5";

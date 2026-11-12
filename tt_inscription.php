@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: inscription.php');
     exit;
@@ -15,7 +18,20 @@ if ($pseudo === '' || $motDePasse === '') {
     exit;
 }
 
-require __DIR__ . '/param.inc.php';
+$configFile = __DIR__ . '/param.inc.php';
+if (!file_exists($configFile)) {
+    $_SESSION['erreur'] = 'Fichier de configuration de la base introuvable.';
+    header('Location: inscription.php');
+    exit;
+}
+
+require $configFile;
+
+if (!isset($host, $user, $password, $dbname)) {
+    $_SESSION['erreur'] = 'Les identifiants MySQL sont incomplets.';
+    header('Location: inscription.php');
+    exit;
+}
 
 try {
     $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
@@ -45,7 +61,7 @@ try {
     $_SESSION['message'] = 'Inscription réussie !';
     header('Location: inscription.php');
     exit;
-} catch (PDOException $e) {
+} catch (Throwable $e) {
     $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();
     header('Location: inscription.php');
     exit;

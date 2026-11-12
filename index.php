@@ -7,23 +7,41 @@ $titre = 'Accueil';
 $estConnecte = !empty($_SESSION['pseudo']);
 $pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
 
-// On remplacera les données plus tard par les resultats de requete SQL A FAIRE 
-$derniersDefis = [
-    ['titre' => 'Duel sanglant', 'auteur' => 'Titan'],
-    ['titre' => 'Qui osera ?', 'auteur' => 'NinjaX'],
-];
-$dernieresBrutes = [
-    ['nom' => 'Goliath'],
-    ['nom' => 'Valkyrie'],
-];
+// On doit afficher les deux derniers défis et les 2 dernières brutes créées.
+try {
+    $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
+    $pdo = new PDO($dsn, $user, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+
+    // Récupération des deux derniers défis
+    $table = 'Defi';
+    $sql = 'SELECT * FROM `' . $table . '` ORDER BY date_creation DESC LIMIT 2';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    // Séparation des colonnes
+    $derniersDefis = $stmt->fetchAll();
+
+    // Récupération des deux dernières brutes
+    $table = 'Brute';
+    $sql = 'SELECT * FROM `' . $table . '` ORDER BY date_creation DESC LIMIT 2';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+    // Séparation des colonnes
+    $dernieresBrutes = $stmt->fetchAll();
+
+} catch (Throwable $e) {
+    $derniersDefis = [];
+    $dernieresBrutes = [];
+    $_SESSION['erreur'] = 'Impossible de charger les derniers défis et brutes : ' . $e->getMessage();
+}
 
 require __DIR__ . '/header.inc.php';
 ?>
 <section class="presentation text-center p-4 p-md-5 mb-4" aria-labelledby="titre-accueil">
     <h1 id="titre-accueil" class="display-5 fw-bold">Bienvenue dans l'Arène !</h1>
     <p class="lead mb-3">Crée ta brute, propose des défis et affronte d'autres joueurs dans des combats automatiques sans merci.</p>
-    <!-- Le visiteur doit d'abord créer son compte. -->
-    <a class="btn btn-primary btn-lg" href="inscription.php">Créer ma Brute</a>
 </section>
 
 <div class="row g-4">
@@ -41,7 +59,6 @@ require __DIR__ . '/header.inc.php';
                     <li>Le combat s'arrête lorsqu'une brute n'a plus de points de vie.</li>
                     <li>Le résultat est enregistré et chaque brute retrouve ses 30 points de vie au début du combat suivant.</li>
                 </ul>
-                // Ajout d'un bouton lorsque l'utilisateur est connecté pour créer une brute et un défi
                 <?php if ($estConnecte): ?>
                     <div class="mt-3">
                         <a class="btn btn-success me-2" href="creerBrute.php">Créer ma Brute</a>

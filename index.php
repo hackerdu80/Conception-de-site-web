@@ -7,7 +7,14 @@ $titre = 'Accueil';
 $estConnecte = !empty($_SESSION['pseudo']);
 $pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
 
-// On doit afficher les deux derniers défis et les 2 dernières brutes créées.
+// Vérification de l'existence du fichier de configuration
+$configFile = __DIR__ . '/param.inc.php';
+if (!file_exists($configFile)) {
+    $_SESSION['erreur'] = 'Fichier de configuration de la base introuvable.';
+    header('Location: connexion.php');
+    exit;
+}
+
 try {
     $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
     $pdo = new PDO($dsn, $user, $password, [
@@ -20,15 +27,16 @@ try {
     $sql = 'SELECT * FROM `' . $table . '` ORDER BY date_creation DESC LIMIT 2';
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
-    // Séparation des colonnes
     $derniersDefis = $stmt->fetchAll();
 
     // Récupération des deux dernières brutes
-    $table = 'Brute';
-    $sql = 'SELECT * FROM `' . $table . '` ORDER BY date_creation DESC LIMIT 2';
+    $sql = 'SELECT b.id_brute, b.nom, j.pseudo AS auteur
+            FROM Brute b
+            INNER JOIN Joueur j ON j.id_joueur = b.id_joueur
+            ORDER BY b.id_brute DESC
+            LIMIT 2';
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
-    // Séparation des colonnes
     $dernieresBrutes = $stmt->fetchAll();
 
 } catch (Throwable $e) {

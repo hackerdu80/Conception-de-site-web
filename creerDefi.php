@@ -18,9 +18,24 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    $sql = 'SELECT id_brute, nom FROM Brute WHERE id_joueur = :id_joueur ORDER BY nom ASC';
+    $pseudoJoueur = trim((string) ($_SESSION['pseudo'] ?? ''));
+    if ($pseudoJoueur === '' && !empty($_SESSION['id_joueur'])) {
+        $stmt = $pdo->prepare('SELECT pseudo FROM Joueur WHERE id_joueur = :id_joueur LIMIT 1');
+        $stmt->execute(['id_joueur' => (int) $_SESSION['id_joueur']]);
+        $joueur = $stmt->fetch();
+        if ($joueur) {
+            $pseudoJoueur = (string) $joueur['pseudo'];
+            $_SESSION['pseudo'] = $pseudoJoueur;
+        }
+    }
+
+    if ($pseudoJoueur === '') {
+        throw new RuntimeException('Pseudo non trouvé dans la session.');
+    }
+
+    $sql = 'SELECT id_brute, nom FROM Brute WHERE pseudo_joueur = :pseudo_joueur ORDER BY nom ASC';
     $stmt = $pdo->prepare($sql);
-    $stmt->execute(['id_joueur' => $_SESSION['id_joueur']]);
+    $stmt->execute(['pseudo_joueur' => $pseudoJoueur]);
     $brutes = $stmt->fetchAll();
 } catch (Throwable $e) {
     $brutes = [];

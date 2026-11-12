@@ -6,7 +6,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (empty($_SESSION['id_joueur'])) {
+$idJoueur = (int) ($_SESSION['id_joueur'] ?? 0);
+$pseudoJoueur = trim((string) ($_SESSION['pseudo'] ?? ''));
+
+if ($idJoueur <= 0 && $pseudoJoueur === '') {
     $_SESSION['erreur'] = 'Vous devez être connecté pour créer un défi.';
     header('Location: connexion.php');
     exit;
@@ -31,10 +34,20 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    $checkBrute = $pdo->prepare('SELECT id_brute FROM Brute WHERE id_brute = :id_brute AND id_joueur = :id_joueur LIMIT 1');
+    if ($pseudoJoueur === '' && $idJoueur > 0) {
+        $stmt = $pdo->prepare('SELECT pseudo FROM Joueur WHERE id_joueur = :id_joueur LIMIT 1');
+        $stmt->execute(['id_joueur' => $idJoueur]);
+        $joueur = $stmt->fetch();
+        if ($joueur) {
+            $pseudoJoueur = (string) $joueur['pseudo'];
+            $_SESSION['pseudo'] = $pseudoJoueur;
+        }
+    }
+
+    $checkBrute = $pdo->prepare('SELECT id_brute FROM Brute WHERE id_brute = :id_brute AND pseudo_joueur = :pseudo_joueur LIMIT 1');
     $checkBrute->execute([
         'id_brute' => $idBruteAuteur,
-        'id_joueur' => $_SESSION['id_joueur'],
+        'pseudo_joueur' => $pseudoJoueur,
     ]);
 
     if (!$checkBrute->fetch()) {
@@ -51,7 +64,7 @@ try {
     ]);
 
     $_SESSION['message'] = 'Défi publié avec succès !';
-    header('Location: creerDefi.php');
+    header('Location: index.php');
     exit;
 } catch (Throwable $e) {
     $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();

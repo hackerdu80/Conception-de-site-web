@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// Gestion des erreurs Php pour le developpement
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
@@ -34,11 +35,15 @@ if (!isset($host, $user, $password, $dbname)) {
 }
 
 try {
+    // Connexion à la base de données
     $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
-    $pdo = new PDO($dsn, $user, $password, [
+    
+    // ERRMODE_EXCEPTION, FETCH_ASSOC se comportent comme des catch pour gérer des erreurs  
+    $pdo = new PDO($dsn, $user, $password, [ 
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
+
 
     $table = 'Joueur';
 
@@ -59,7 +64,6 @@ try {
     ]);
 
     $_SESSION['pseudo'] = $pseudo;
-    $_SESSION['id_joueur'] = (int) $pdo->lastInsertId();
     $_SESSION['message'] = 'Inscription réussie !';
     header('Location: index.php');
     exit;

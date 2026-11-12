@@ -1,11 +1,13 @@
 <?php
 session_start();
 
+// Vérification que la requête est bien de type POST = formulaire soumis
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: connexion.php');
     exit;
 }
 
+// Récupération des données du formulaire
 $pseudo = trim((string) ($_POST['pseudo'] ?? ''));
 $motDePasse = (string) ($_POST['password'] ?? '');
 
@@ -15,6 +17,7 @@ if ($pseudo === '' || $motDePasse === '') {
     exit;
 }
 
+// Vérification de l'existence du fichier de configuration
 $configFile = __DIR__ . '/param.inc.php';
 if (!file_exists($configFile)) {
     $_SESSION['erreur'] = 'Fichier de configuration de la base introuvable.';
@@ -43,6 +46,7 @@ try {
     $stmt->execute(['pseudo' => $pseudo]);
     $utilisateur = $stmt->fetch();
 
+    // Vérification du mot de passe
     if ($utilisateur && password_verify($motDePasse, $utilisateur['mot_de_passe_hash'])) {
         $_SESSION['pseudo'] = $utilisateur['pseudo'];
         $_SESSION['id_joueur'] = $utilisateur['id_joueur'];

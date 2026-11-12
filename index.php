@@ -1,8 +1,13 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $titre = 'Accueil';
+$estConnecte = !empty($_SESSION['pseudo']);
+$pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
 
-// On remplacera les données plus tard par les resultats de requete SQL A FAIRE LUNDI 02/11
-
+// On remplacera les données plus tard par les resultats de requete SQL A FAIRE 
 $derniersDefis = [
     ['titre' => 'Duel sanglant', 'auteur' => 'Titan'],
     ['titre' => 'Qui osera ?', 'auteur' => 'NinjaX'],
@@ -36,6 +41,13 @@ require __DIR__ . '/header.inc.php';
                     <li>Le combat s'arrête lorsqu'une brute n'a plus de points de vie.</li>
                     <li>Le résultat est enregistré et chaque brute retrouve ses 30 points de vie au début du combat suivant.</li>
                 </ul>
+                // Ajout d'un bouton lorsque l'utilisateur est connecté pour créer une brute et un défi
+                <?php if ($estConnecte): ?>
+                    <div class="mt-3">
+                        <a class="btn btn-success me-2" href="creerBrute.php">Créer ma Brute</a>
+                        <a class="btn btn-warning" href="creerDefi.php">Proposer un Défi</a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>

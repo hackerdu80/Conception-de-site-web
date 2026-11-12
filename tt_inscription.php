@@ -58,8 +58,10 @@ try {
         'motDePasseHash' => $hash,
     ]);
 
+    $_SESSION['pseudo'] = $pseudo;
+    $_SESSION['id_joueur'] = (int) $pdo->lastInsertId();
     $_SESSION['message'] = 'Inscription réussie !';
-    header('Location: inscription.php');
+    header('Location: index.php');
     exit;
 } catch (Throwable $e) {
     $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();

@@ -24,21 +24,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    $tableCandidates = ['joueur', 'Joueur'];
-    $table = null;
-    foreach ($tableCandidates as $candidate) {
-        try {
-            $pdo->query('SELECT 1 FROM `' . $candidate . '` LIMIT 1');
-            $table = $candidate;
-            break;
-        } catch (PDOException $e) {
-            // on essaie la variante suivante si la table n'existe pas avec cette casse
-        }
-    }
-
-    if ($table === null) {
-        throw new PDOException('Aucune table joueur trouvée. Vérifie le nom exact de la table dans phpMyAdmin.');
-    }
+    $table = 'Joueur';
 
     $pseudoExiste = $pdo->prepare('SELECT 1 FROM `' . $table . '` WHERE pseudo = :pseudo LIMIT 1');
     $pseudoExiste->execute(['pseudo' => $pseudo]);

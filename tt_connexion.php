@@ -11,21 +11,7 @@ $pdo = new PDO($dsn, $user, $password, [
 $pseudo = trim((string) ($_POST['pseudo'] ?? ''));
 $motDePasse = (string) ($_POST['password'] ?? '');
 
-$tableCandidates = ['joueur', 'Joueur'];
-$table = null;
-foreach ($tableCandidates as $candidate) {
-    try {
-        $pdo->query('SELECT 1 FROM `' . $candidate . '` LIMIT 1');
-        $table = $candidate;
-        break;
-    } catch (PDOException $e) {
-        // on essaie la variante suivante si la table n'existe pas avec cette casse
-    }
-}
-
-if ($table === null) {
-    die('Aucune table joueur trouvée. Vérifie le nom exact de la table dans phpMyAdmin.');
-}
+$table = 'Joueur';
 
 $sql = 'SELECT * FROM `' . $table . '` WHERE pseudo = :pseudo LIMIT 1';
 $stmt = $pdo->prepare($sql);

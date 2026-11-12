@@ -34,7 +34,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    $sql = 'SELECT d.id_defi, d.titre, d.description, d.date_creation, d.etat_defi, b.id_brute, b.nom AS nom_brute, b.pseudo_joueur FROM Defi d INNER JOIN Brute b ON b.id_brute = d.id_brute_auteur ORDER BY d.date_creation DESC';
+    $sql = 'SELECT d.id_defi, d.titre, d.description, d.date_creation, d.etat_defi, b.id_brute, b.nom AS nom_brute, b.pseudo_joueur FROM Defi d INNER JOIN Brute b ON b.id_brute = d.id_brute_auteur WHERE d.etat_defi != 2 ORDER BY d.date_creation DESC';
     $defis = $pdo->query($sql)->fetchAll();
 
     foreach ($defis as $index => $defi) {
@@ -43,6 +43,8 @@ try {
         $defis[$index]['candidatures'] = $stmtCandidatures->fetchAll();
     }
 
+    $historiqueDefis = $pdo->query('SELECT d.id_defi, d.titre, d.description, d.date_creation, d.etat_defi, b.nom AS nom_brute, b.pseudo_joueur FROM Defi d INNER JOIN Brute b ON b.id_brute = d.id_brute_auteur WHERE d.etat_defi = 2 ORDER BY d.date_creation DESC')->fetchAll();
+
     if ($estConnecte && $pseudoJoueur !== '') {
         $stmtBrutes = $pdo->prepare('SELECT id_brute, nom FROM Brute WHERE pseudo_joueur = :pseudo_joueur ORDER BY nom ASC');
         $stmtBrutes->execute(['pseudo_joueur' => $pseudoJoueur]);
@@ -50,6 +52,7 @@ try {
     }
 } catch (Throwable $e) {
     $defis = [];
+    $historiqueDefis = [];
     $_SESSION['erreur'] = 'Erreur de chargement des défis : ' . $e->getMessage();
 }
 
@@ -77,7 +80,7 @@ require __DIR__ . '/header.inc.php';
     <?php endif; ?>
 
     <?php if ($defis === []): ?>
-        <div class="alert alert-info" role="alert">Aucun défi n’a été publié pour le moment.</div>
+        <div class="alert alert-info" role="alert">Aucun défi actif n’a été publié pour le moment.</div>
     <?php else: ?>
         <div class="row g-4">
             <?php foreach ($defis as $defi): ?>
@@ -158,6 +161,27 @@ require __DIR__ . '/header.inc.php';
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+
+    <div class="mt-5">
+        <h2 class="h4 mb-3">Historique des défis terminés</h2>
+        <?php if (empty($historiqueDefis)): ?>
+            <div class="alert alert-secondary" role="alert">Aucun défi terminé pour le moment.</div>
+        <?php else: ?>
+            <div class="list-group">
+                <?php foreach ($historiqueDefis as $defi): ?>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <div>
+                                <strong><?= htmlspecialchars($defi['titre'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                <div class="small text-muted">Par <?= htmlspecialchars($defi['pseudo_joueur'], ENT_QUOTES, 'UTF-8') ?> — Brute : <?= htmlspecialchars($defi['nom_brute'], ENT_QUOTES, 'UTF-8') ?></div>
+                            </div>
+                            <a href="compteRenduCombat.php?id_defi=<?= (int) $defi['id_defi'] ?>" class="btn btn-sm btn-outline-secondary">Voir le combat</a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </section>
 
 <?php require __DIR__ . '/footer.inc.php'; ?>

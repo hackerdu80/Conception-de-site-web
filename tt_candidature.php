@@ -68,6 +68,16 @@ try {
         throw new RuntimeException('Cette brute ne vous appartient pas.');
     }
 
+    $checkDoublon = $pdo->prepare('SELECT c.id_candidature FROM Candidature c INNER JOIN Brute b ON b.id_brute = c.id_brute_adv WHERE c.id_defi = :id_defi AND b.pseudo_joueur = :pseudo_joueur LIMIT 1');
+    $checkDoublon->execute([
+        'id_defi' => $idDefi,
+        'pseudo_joueur' => $pseudoJoueur,
+    ]);
+
+    if ($checkDoublon->fetch()) {
+        throw new RuntimeException('Vous avez déjà candidaté à ce défi avec une de vos brutes.');
+    }
+
     $insert = $pdo->prepare('INSERT INTO Candidature (id_defi, id_brute_adv, message, date_candidature, etat_candidature) VALUES (:id_defi, :id_brute_adv, :message, NOW(), 1)');
     $insert->execute([
         'id_defi' => $idDefi,

@@ -6,14 +6,18 @@ if (session_status() === PHP_SESSION_NONE) {
 $titre = 'Accueil';
 $estConnecte = !empty($_SESSION['pseudo']);
 $pseudoJoueur = $estConnecte ? trim((string) $_SESSION['pseudo']) : '';
+$erreurChargement = '';
 
-// Vérification de l'existence du fichier de configuration
 $configFile = __DIR__ . '/param.inc.php';
 if (!file_exists($configFile)) {
     $_SESSION['erreur'] = 'Fichier de configuration de la base introuvable.';
     header('Location: connexion.php');
     exit;
 }
+require $configFile; // <-- charge $host, $dbname, $user, $password
+
+$derniersDefis = [];
+$dernieresBrutes = [];
 
 try {
     $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
@@ -22,31 +26,29 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    // Récupération des deux derniers défis
-    $table = 'Defi';
-    $sql = 'SELECT * FROM `' . $table . '` ORDER BY date_creation DESC LIMIT 2';
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $derniersDefis = $stmt->fetchAll();
-
-    // Récupération des deux dernières brutes
-    $sql = 'SELECT b.id_brute, b.nom, j.pseudo AS auteur
-            FROM Brute b
-            INNER JOIN Joueur j ON j.id_joueur = b.id_joueur
-            ORDER BY b.id_brute DESC
+    // 2 derniers défis, avec le pseudo du joueur qui possède la brute auteur
+    $sql = 'SELECT d.id_defi, d.titre, b.pseudo_joueur AS auteur
+            FROM Defi d
+            INNER JOIN Brute b ON b.id_brute = d.id_brute_auteur
+            ORDER BY d.date_creation DESC, d.id_defi DESC
             LIMIT 2';
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-    $dernieresBrutes = $stmt->fetchAll();
+    $derniersDefis = $pdo->query($sql)->fetchAll();
+
+    // 2 dernières brutes
+    $sql = 'SELECT id_brute, nom, avatar, pseudo_joueur AS auteur
+            FROM Brute
+            ORDER BY id_brute DESC
+            LIMIT 2';
+    $dernieresBrutes = $pdo->query($sql)->fetchAll();
 
 } catch (Throwable $e) {
-    $derniersDefis = [];
-    $dernieresBrutes = [];
-    $_SESSION['erreur'] = 'Impossible de charger les derniers défis et brutes : ' . $e->getMessage();
+    error_log('index.php : ' . $e->getMessage());
+    $erreurChargement = 'Impossible de charger les derniers défis et brutes.';
 }
 
 require __DIR__ . '/header.inc.php';
 ?>
+
 <section class="presentation text-center p-4 p-md-5 mb-4" aria-labelledby="titre-accueil">
     <h1 id="titre-accueil" class="display-5 fw-bold">Bienvenue dans l'Arène !</h1>
     <p class="lead mb-3">Crée ta brute, propose des défis et affronte d'autres joueurs dans des combats automatiques sans merci.</p>
@@ -76,37 +78,50 @@ require __DIR__ . '/header.inc.php';
             </div>
         </div>
     </section>
-
+    
+    <?php if ($erreurChargement !== ''): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($erreurChargement, ENT_QUOTES, 'UTF-8') ?></div>
+    <?php endif; ?>
     <aside class="col-12 col-lg-4" aria-label="Aperçus de l'arène">
-        <section id="defis" class="card mb-4" aria-labelledby="titre-defis">
-            <div class="card-header bg-danger text-white">
-                <h2 id="titre-defis" class="h6 mb-0">Derniers défis ouverts</h2>
-            </div>
-            <ul class="list-group list-group-flush">
-                <?php foreach ($derniersDefis as $defi): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
-                        <span><?= htmlspecialchars($defi['titre'], ENT_QUOTES, 'UTF-8') ?></span>
-                        <span class="badge rounded-pill text-bg-secondary">Par : <?= htmlspecialchars($defi['auteur'], ENT_QUOTES, 'UTF-8') ?></span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </section>
+    <section id="defis" class="card mb-4" aria-labelledby="titre-defis">
+        <div class="card-header bg-danger text-white">
+            <h2 id="titre-defis" class="h6 mb-0">Derniers défis ouverts</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+            <?php if (empty($derniersDefis)): ?>
+                <li class="list-group-item text-secondary">Aucun défi pour le moment.</li>
+            <?php endif; ?>
+            <?php foreach ($derniersDefis as $defi): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                    <span><?= htmlspecialchars($defi['titre'], ENT_QUOTES, 'UTF-8') ?></span>
+                    <span class="badge rounded-pill text-bg-secondary">Par : <?= htmlspecialchars($defi['auteur'], ENT_QUOTES, 'UTF-8') ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
 
-        <section id="brutes" class="card" aria-labelledby="titre-brutes">
-            <div class="card-header bg-dark text-white">
-                <h2 id="titre-brutes" class="h6 mb-0">Dernières brutes créées</h2>
-            </div>
-            <ul class="list-group list-group-flush">
-                <?php foreach ($dernieresBrutes as $brute): ?>
-                    <li class="list-group-item d-flex align-items-center gap-2 border-0">
-                        <!-- A mettre l'avatar de la brute dans le rond -->
+    <section id="brutes" class="card" aria-labelledby="titre-brutes">
+        <div class="card-header bg-dark text-white">
+            <h2 id="titre-brutes" class="h6 mb-0">Dernières brutes créées</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+            <?php if (empty($dernieresBrutes)): ?>
+                <li class="list-group-item text-secondary">Aucune brute pour le moment.</li>
+            <?php endif; ?>
+            <?php foreach ($dernieresBrutes as $brute): ?>
+                <li class="list-group-item d-flex align-items-center gap-2 border-0">
+                    <?php if (!empty($brute['avatar'])): ?>
+                        <img src="<?= htmlspecialchars($brute['avatar'], ENT_QUOTES, 'UTF-8') ?>"
+                             alt="Avatar de <?= htmlspecialchars($brute['nom'], ENT_QUOTES, 'UTF-8') ?>"
+                             class="rounded-circle" width="32" height="32" style="object-fit:cover;">
+                    <?php else: ?>
                         <span class="avatar-placeholder" aria-hidden="true"></span>
-                        <strong><?= htmlspecialchars($brute['nom'], ENT_QUOTES, 'UTF-8') ?></strong>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </section>
-        <p class="small text-secondary mt-2">Aperçus de démonstration.</p>
-    </aside>
+                    <?php endif; ?>
+                    <strong><?= htmlspecialchars($brute['nom'], ENT_QUOTES, 'UTF-8') ?></strong>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+</aside>
 </div>
 <?php require __DIR__ . '/footer.inc.php'; ?>

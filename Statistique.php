@@ -19,7 +19,7 @@ try {
 	]);
 
 	$requete = $pdo->prepare(
-		'SELECT b.id_brute, b.nom, b.points_de_vie AS vie, b.force_brute, b.defense,
+		'SELECT b.id_brute, b.nom, b.avatar, b.points_de_vie AS vie, b.force_brute, b.defense,
 			COUNT(DISTINCT p.id_combat) AS combats,
 			COUNT(DISTINCT CASE WHEN p.id_brute_vainqueur = b.id_brute THEN p.id_combat END) AS victoires,
 			COUNT(DISTINCT CASE WHEN p.id_brute_vainqueur <> b.id_brute THEN p.id_combat END) AS defaites
@@ -34,7 +34,7 @@ try {
 			INNER JOIN Candidature ca ON ca.id_defi = c.id_defi AND ca.etat_candidature = 2
 		 ) p ON p.id_brute = b.id_brute
 		 WHERE b.pseudo_joueur = :pseudo
-		 GROUP BY b.id_brute, b.nom, b.points_de_vie, b.force_brute, b.defense
+		 GROUP BY b.id_brute, b.nom, b.avatar, b.points_de_vie, b.force_brute, b.defense
 		 ORDER BY b.nom'
 	);
 	$requete->execute(['pseudo' => $pseudoJoueur]);
@@ -67,9 +67,10 @@ foreach ($brutes as $brute) {
 		.carte span { display: block; color: #657084; font-size: 14px; }
 		.carte strong { display: block; margin-top: 5px; font-size: 25px; }
 		.tableau { overflow-x: auto; }
-		table { width: 100%; border-collapse: collapse; min-width: 680px; }
+		table { width: 100%; border-collapse: collapse; min-width: 760px; }
 		th, td { padding: 12px 10px; border-bottom: 1px solid #e8ebf0; text-align: left; }
 		th { color: #657084; font-size: 13px; }
+		.avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
 		.message { padding: 14px; border-radius: 8px; background: #fff2df; color: #79500d; }
 		.retour { display: inline-block; margin-top: 20px; color: #2459b5; text-decoration: none; }
 	</style>
@@ -95,11 +96,18 @@ foreach ($brutes as $brute) {
 			<section class="tableau">
 				<table>
 					<thead>
-						<tr><th>Brute</th><th>Vie</th><th>Force</th><th>Défense</th><th>Combats</th><th>Victoires</th><th>Défaites</th></tr>
+						<tr><th>Avatar</th><th>Brute</th><th>Vie</th><th>Force</th><th>Défense</th><th>Combats</th><th>Victoires</th><th>Défaites</th></tr>
 					</thead>
 					<tbody>
 					<?php foreach ($brutes as $brute): ?>
 						<tr>
+							<td>
+								<?php if (!empty($brute['avatar'])): ?>
+									<img class="avatar" src="<?= htmlspecialchars((string) $brute['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Avatar de <?= htmlspecialchars((string) ($brute['nom'] ?? 'brute'), ENT_QUOTES, 'UTF-8') ?>">
+								<?php else: ?>
+									<span aria-label="Aucun avatar">—</span>
+								<?php endif; ?>
+							</td>
 							<td><?= htmlspecialchars((string) ($brute['nom'] ?? 'Sans nom'), ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= (int) ($brute['vie'] ?? 0) ?></td>
 							<td><?= (int) ($brute['force_brute'] ?? 0) ?></td>

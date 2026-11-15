@@ -18,6 +18,7 @@ require $configFile; // <-- charge $host, $dbname, $user, $password
 
 $derniersDefis = [];
 $dernieresBrutes = [];
+$derniersCombats = [];
 
 try {
     $dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
@@ -41,9 +42,33 @@ try {
             LIMIT 2';
     $dernieresBrutes = $pdo->query($sql)->fetchAll();
 
+    if ($estConnecte) {
+        $sql = 'SELECT c.id_combat, c.id_defi, c.date_combat,
+                       CASE WHEN bAuteur.pseudo_joueur = :pseudo_auteur_nom THEN bAuteur.nom ELSE bAdv.nom END AS brute_joueur,
+                       CASE WHEN bAuteur.pseudo_joueur = :pseudo_adv_nom THEN bAdv.nom ELSE bAuteur.nom END AS adversaire,
+                       CASE WHEN c.id_brute_vainqueur = CASE WHEN bAuteur.pseudo_joueur = :pseudo_vainqueur THEN bAuteur.id_brute ELSE bAdv.id_brute END THEN 1 ELSE 0 END AS victoire
+                FROM Combat c
+                INNER JOIN Defi d ON d.id_defi = c.id_defi
+                INNER JOIN Candidature ca ON ca.id_defi = d.id_defi AND ca.etat_candidature = 2
+                INNER JOIN Brute bAuteur ON bAuteur.id_brute = d.id_brute_auteur
+                INNER JOIN Brute bAdv ON bAdv.id_brute = ca.id_brute_adv
+                WHERE bAuteur.pseudo_joueur = :pseudo_auteur OR bAdv.pseudo_joueur = :pseudo_adv
+                ORDER BY c.date_combat DESC, c.id_combat DESC
+                LIMIT 2';
+        $requete = $pdo->prepare($sql);
+        $requete->execute([
+            'pseudo_auteur_nom' => $pseudoJoueur,
+            'pseudo_adv_nom' => $pseudoJoueur,
+            'pseudo_vainqueur' => $pseudoJoueur,
+            'pseudo_auteur' => $pseudoJoueur,
+            'pseudo_adv' => $pseudoJoueur,
+        ]);
+        $derniersCombats = $requete->fetchAll();
+    }
+
 } catch (Throwable $e) {
     error_log('index.php : ' . $e->getMessage());
-    $erreurChargement = 'Impossible de charger les derniers défis et brutes.';
+    $erreurChargement = 'Impossible de charger les derniers défis, brutes et combats.';
 }
 
 require __DIR__ . '/header.inc.php';
@@ -122,6 +147,38 @@ require __DIR__ . '/header.inc.php';
             <?php endforeach; ?>
         </ul>
     </section>
+
+    <?php if ($estConnecte): ?>
+        <section id="mes-combats" class="card mt-4" aria-labelledby="titre-mes-combats">
+            <div class="card-header bg-primary text-white">
+                <h2 id="titre-mes-combats" class="h6 mb-0">Mes 2 derniers combats</h2>
+            </div>
+            <ul class="list-group list-group-flush">
+                <?php if (empty($derniersCombats)): ?>
+                    <li class="list-group-item text-secondary">Vous n'avez pas encore de combat.</li>
+                <?php endif; ?>
+                <?php foreach ($derniersCombats as $combat): ?>
+                    <?php $victoire = (bool) $combat['victoire']; ?>
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <span>
+                                <strong><?= htmlspecialchars($combat['brute_joueur'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                contre
+                                <?= htmlspecialchars($combat['adversaire'], ENT_QUOTES, 'UTF-8') ?>
+                            </span>
+                            <time class="small text-secondary text-nowrap" datetime="<?= htmlspecialchars($combat['date_combat'], ENT_QUOTES, 'UTF-8') ?>">
+                                <?= htmlspecialchars(date('d/m/Y', strtotime($combat['date_combat'])), ENT_QUOTES, 'UTF-8') ?>
+                            </time>
+                        </div>
+                        <div class="rounded p-2 text-center fw-bold text-white <?= $victoire ? 'bg-success' : 'bg-danger' ?>">
+                            <?= $victoire ? 'Victoire' : 'Défaite' ?>
+                        </div>
+                        <a class="small d-inline-block mt-2" href="compteRenduCombat.php?id_defi=<?= (int) $combat['id_defi'] ?>">Voir le compte-rendu</a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
+    <?php endif; ?>
 </aside>
 </div>
 <?php require __DIR__ . '/footer.inc.php'; ?>

@@ -2,35 +2,45 @@
 session_start();
 
 // La page est réservée aux utilisateurs connectés.
-$userId = $_SESSION['id_utilisateur'] ?? $_SESSION['user_id'] ?? $_SESSION['id'] ?? null;
-if (!$userId) {
+$pseudoJoueur = trim((string) ($_SESSION['pseudo'] ?? ''));
+if ($pseudoJoueur === '') {
 	header('Location: index.php');
 	exit;
 }
 
-// connexion.php doit initialiser une connexion PDO dans la variable $pdo.
-$connexionFile = __DIR__ . '/connexion.php';
-if (is_file($connexionFile)) {
-	require_once $connexionFile;
-}
-
 $brutes = [];
 $erreur = '';
-if (isset($pdo) && $pdo instanceof PDO) {
-	try {
-		$requete = $pdo->prepare(
-			'SELECT nom, vie, force, defense, combats, victoires, defaites
-			 FROM brutes
-			 WHERE id_utilisateur = :utilisateur
-			 ORDER BY nom'
-		);
-		$requete->execute(['utilisateur' => $userId]);
-		$brutes = $requete->fetchAll(PDO::FETCH_ASSOC);
-	} catch (Throwable $e) {
-		$erreur = 'Impossible de récupérer les statistiques. Vérifiez la table brutes et ses colonnes.';
-	}
-} else {
-	$erreur = 'Connexion à la base de données indisponible.';
+try {
+	require __DIR__ . '/param.inc.php';
+	$dsn = 'mysql:host=' . $host . ';dbname=' . $dbname . ';charset=utf8mb4';
+	$pdo = new PDO($dsn, $user, $password, [
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+	]);
+
+	$requete = $pdo->prepare(
+		'SELECT b.id_brute, b.nom, b.points_de_vie AS vie, b.force_brute, b.defense,
+			COUNT(DISTINCT p.id_combat) AS combats,
+			COUNT(DISTINCT CASE WHEN p.id_brute_vainqueur = b.id_brute THEN p.id_combat END) AS victoires,
+			COUNT(DISTINCT CASE WHEN p.id_brute_vainqueur <> b.id_brute THEN p.id_combat END) AS defaites
+		 FROM Brute b
+		 LEFT JOIN (
+			SELECT c.id_combat, d.id_brute_auteur AS id_brute, c.id_brute_vainqueur
+			FROM Combat c
+			INNER JOIN Defi d ON d.id_defi = c.id_defi
+			UNION ALL
+			SELECT c.id_combat, ca.id_brute_adv AS id_brute, c.id_brute_vainqueur
+			FROM Combat c
+			INNER JOIN Candidature ca ON ca.id_defi = c.id_defi AND ca.etat_candidature = 2
+		 ) p ON p.id_brute = b.id_brute
+		 WHERE b.pseudo_joueur = :pseudo
+		 GROUP BY b.id_brute, b.nom, b.points_de_vie, b.force_brute, b.defense
+		 ORDER BY b.nom'
+	);
+	$requete->execute(['pseudo' => $pseudoJoueur]);
+	$brutes = $requete->fetchAll();
+} catch (Throwable $e) {
+	$erreur = 'Impossible de récupérer les statistiques. Vérifiez la connexion et les tables de la base de données.';
 }
 
 $totaux = ['combats' => 0, 'victoires' => 0, 'defaites' => 0];
@@ -92,7 +102,7 @@ foreach ($brutes as $brute) {
 						<tr>
 							<td><?= htmlspecialchars((string) ($brute['nom'] ?? 'Sans nom'), ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= (int) ($brute['vie'] ?? 0) ?></td>
-							<td><?= (int) ($brute['force'] ?? 0) ?></td>
+							<td><?= (int) ($brute['force_brute'] ?? 0) ?></td>
 							<td><?= (int) ($brute['defense'] ?? 0) ?></td>
 							<td><?= (int) ($brute['combats'] ?? 0) ?></td>
 							<td><?= (int) ($brute['victoires'] ?? 0) ?></td>

@@ -30,6 +30,9 @@ $pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo'])
                     <!-- Aperçus pour cette première version ; pages de listes à créer ensuite. -->
                     <li class="nav-item"><a class="nav-link" href="listeBrutes.php">Liste des brutes</a></li>
                     <li class="nav-item"><a class="nav-link" href="listeDefi.php">Liste des défis</a></li>
+                    <?php if ($estConnecte): ?>
+                        <li class="nav-item"><a class="nav-link" href="Statistique.php">Mes statistiques</a></li>
+                    <?php endif; ?>
                 </ul>
                 <ul class="navbar-nav align-items-center gap-2">
                     <?php if ($estConnecte): ?>

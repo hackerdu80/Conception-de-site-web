@@ -7,31 +7,12 @@ if (empty($_SESSION['id_joueur']) && empty($_SESSION['pseudo'])) {
     exit;
 }
 
-$avatarDir = __DIR__ . '/uploads/avatars';
-$avatarsDisponibles = [];
-if (is_dir($avatarDir)) {
-    $fichiers = glob($avatarDir . '/*');
-    if (is_array($fichiers)) {
-        foreach ($fichiers as $fichier) {
-            if (is_file($fichier)) {
-                $extension = strtolower(pathinfo($fichier, PATHINFO_EXTENSION));
-                if (in_array($extension, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'], true)) {
-                    $avatarsDisponibles[] = 'uploads/avatars/' . basename($fichier);
-                }
-            }
-        }
-    }
-}
-
-sort($avatarsDisponibles, SORT_STRING);
-
-if ($avatarsDisponibles === []) {
-    $avatarsDisponibles = [
-        'uploads/avatars/avatar1.svg',
-        'uploads/avatars/avatar2.svg',
-        'uploads/avatars/avatar3.svg',
-    ];
-}
+// Les 3 avatars proposés par défaut
+$avatarsDisponibles = [
+    'uploads/avatars/avatar1.jpg',
+    'uploads/avatars/avatar2.svg',
+    'uploads/avatars/avatar3.svg',
+];
 
 $titre = 'Créer ma brute';
 require __DIR__ . '/header.inc.php';
@@ -58,7 +39,7 @@ require __DIR__ . '/header.inc.php';
                         <?php unset($_SESSION['message']); ?>
                     <?php endif; ?>
 
-                    <form method="post" action="tt_brute.php">
+                    <form method="post" action="tt_brute.php" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="nom" class="form-label">Nom de la brute</label>
                             <input type="text" id="nom" name="nom" class="form-control" maxlength="100" required>
@@ -69,15 +50,26 @@ require __DIR__ . '/header.inc.php';
                             <textarea id="description" name="description" class="form-control" rows="4" maxlength="255"></textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="avatar" class="form-label">Avatar disponible</label>
-                            <select id="avatar" name="avatar" class="form-select" required>
-                                <option value="">Choisir un avatar</option>
-                                <?php foreach ($avatarsDisponibles as $avatar): ?>
-                                    <option value="<?= htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(basename($avatar), ENT_QUOTES, 'UTF-8') ?></option>
+                        <fieldset class="mb-3">
+                            <legend class="form-label fs-6">Choisir un avatar</legend>
+                            <div class="d-flex flex-wrap gap-3">
+                                <?php foreach ($avatarsDisponibles as $i => $avatar): ?>
+                                    <div class="choix-avatar">
+                                        <input type="radio" class="btn-check" name="avatar" id="avatar<?= $i ?>"
+                                               value="<?= htmlspecialchars(basename($avatar), ENT_QUOTES, 'UTF-8') ?>" <?= $i === 0 ? 'checked' : '' ?>>
+                                        <label class="btn btn-outline-primary p-1" for="avatar<?= $i ?>">
+                                            <img src="<?= htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar <?= $i + 1 ?>">
+                                        </label>
+                                    </div>
                                 <?php endforeach; ?>
-                            </select>
-                            <div class="form-text">Choisissez uniquement parmi les avatars disponibles.</div>
+                            </div>
+                        </fieldset>
+
+                        <div class="mb-3">
+                            <label for="avatar_perso" class="form-label">… ou envoyer ma propre image</label>
+                            <input type="file" id="avatar_perso" name="avatar_perso" class="form-control"
+                                   accept="image/png, image/jpeg, image/gif, image/webp">
+                            <div class="form-text">JPG, PNG, GIF ou WEBP, 2 Mo maximum. Si une image est envoyée, elle remplace l’avatar choisi ci-dessus.</div>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">Créer ma brute</button>

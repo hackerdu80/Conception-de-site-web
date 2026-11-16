@@ -24,24 +24,63 @@ if ($nom === '') {
     exit;
 }
 
-$avatarSelectionne = trim((string) ($_POST['avatar'] ?? ''));
-$avatarSelectionne = basename($avatarSelectionne);
-$avatarDir = __DIR__ . '/uploads/avatars';
-$allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+// --- Avatar : image envoyée par l'utilisateur OU un des 3 avatars par défaut ---
+$avatarsParDefaut = ['avatar1.jpg', 'avatar2.svg', 'avatar3.svg'];
+$fichierEnvoye = $_FILES['avatar_perso'] ?? null;
 
-if ($avatarSelectionne === '' || !preg_match('/\.(png|jpe?g|gif|webp|svg)$/i', $avatarSelectionne)) {
-    $_SESSION['erreur'] = 'Veuillez choisir un avatar parmi ceux disponibles.';
-    header('Location: creerBrute.php');
-    exit;
-}
+if ($fichierEnvoye !== null && $fichierEnvoye['error'] !== UPLOAD_ERR_NO_FILE) {
+    // L'utilisateur a envoyé sa propre image
+    if ($fichierEnvoye['error'] !== UPLOAD_ERR_OK) {
+        $_SESSION['erreur'] = 'Erreur lors de l’envoi de l’image (2 Mo maximum).';
+        header('Location: creerBrute.php');
+        exit;
+    }
 
-$avatarPath = 'uploads/avatars/' . $avatarSelectionne;
-$cheminPhysique = $avatarDir . DIRECTORY_SEPARATOR . $avatarSelectionne;
+    if ($fichierEnvoye['size'] > 2 * 1024 * 1024) {
+        $_SESSION['erreur'] = 'L’image est trop lourde (2 Mo maximum).';
+        header('Location: creerBrute.php');
+        exit;
+    }
 
-if (!is_file($cheminPhysique)) {
-    $_SESSION['erreur'] = 'L’avatar sélectionné est introuvable.';
-    header('Location: creerBrute.php');
-    exit;
+    // On vérifie que c'est vraiment une image (et pas juste l'extension)
+    $typesAutorises = [
+        IMAGETYPE_JPEG => 'jpg',
+        IMAGETYPE_PNG  => 'png',
+        IMAGETYPE_GIF  => 'gif',
+        IMAGETYPE_WEBP => 'webp',
+    ];
+    $infosImage = @getimagesize($fichierEnvoye['tmp_name']);
+    if ($infosImage === false || !isset($typesAutorises[$infosImage[2]])) {
+        $_SESSION['erreur'] = 'Le fichier doit être une image JPG, PNG, GIF ou WEBP.';
+        header('Location: creerBrute.php');
+        exit;
+    }
+
+    $dossierPerso = __DIR__ . '/uploads/avatars/perso';
+    if (!is_dir($dossierPerso) && !mkdir($dossierPerso, 0755, true)) {
+        $_SESSION['erreur'] = 'Impossible de créer le dossier des avatars.';
+        header('Location: creerBrute.php');
+        exit;
+    }
+
+    // Nom de fichier aléatoire pour éviter les collisions et les noms dangereux
+    $nomFichier = bin2hex(random_bytes(8)) . '.' . $typesAutorises[$infosImage[2]];
+    if (!move_uploaded_file($fichierEnvoye['tmp_name'], $dossierPerso . '/' . $nomFichier)) {
+        $_SESSION['erreur'] = 'Impossible d’enregistrer l’image.';
+        header('Location: creerBrute.php');
+        exit;
+    }
+
+    $avatarPath = 'uploads/avatars/perso/' . $nomFichier;
+} else {
+    // Sinon : un des 3 avatars proposés
+    $avatarSelectionne = basename(trim((string) ($_POST['avatar'] ?? '')));
+    if (!in_array($avatarSelectionne, $avatarsParDefaut, true)) {
+        $_SESSION['erreur'] = 'Veuillez choisir un avatar ou envoyer une image.';
+        header('Location: creerBrute.php');
+        exit;
+    }
+    $avatarPath = 'uploads/avatars/' . $avatarSelectionne;
 }
 
 $configFile = __DIR__ . '/param.inc.php';

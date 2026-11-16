@@ -3,8 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$titre = 'La Brute';
-$estConnecte = !empty($_SESSION['pseudo']) || !empty($_SESSION['id_joueur']);
+$titre = $titre ?? 'La Brute';
+$estConnecte = !empty($_SESSION['pseudo']) || !empty($_SESSION['id_joueur']); 
 $pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo']) : ''; // Récupère le pseudo du joueur connecté, s'il existe sinon on met une chaîne vide
 ?>
 <!doctype html>

@@ -59,7 +59,9 @@ try {
     header('Location: connexion.php');
     exit;
 } catch (Throwable $e) {
-    $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();
+    error_log('Erreur connexion : ' . $e->getMessage());
+
+    $_SESSION['erreur'] = 'Une erreur est survenue lors de la connexion. Veuillez réessayer.';
     header('Location: connexion.php');
     exit;
 }

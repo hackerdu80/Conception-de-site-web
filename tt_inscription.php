@@ -1,10 +1,6 @@
 <?php
 session_start();
 
-// Gestion des erreurs Php pour le developpement
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: inscription.php');
     exit;
@@ -68,7 +64,9 @@ try {
     header('Location: index.php');
     exit;
 } catch (Throwable $e) {
-    $_SESSION['erreur'] = 'Erreur SQL : ' . $e->getMessage();
+    error_log('Erreur inscription : ' . $e->getMessage());
+
+    $_SESSION['erreur'] = 'Une erreur est survenue lors de l’inscription.';
     header('Location: inscription.php');
     exit;
 }

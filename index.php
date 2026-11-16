@@ -110,7 +110,7 @@ require __DIR__ . '/header.inc.php';
     <aside class="col-12 col-lg-4" aria-label="Aperçus de l'arène">
     <section id="defis" class="card mb-4" aria-labelledby="titre-defis">
         <div class="card-header bg-danger text-white">
-            <h2 id="titre-defis" class="h6 mb-0">Derniers défis ouverts</h2>
+            <h2 id="titre-defis" class="h6 mb-0">Derniers défis</h2>
         </div>
         <ul class="list-group list-group-flush">
             <?php if (empty($derniersDefis)): ?>

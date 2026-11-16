@@ -57,8 +57,14 @@ if ($fichierEnvoye !== null && $fichierEnvoye['error'] !== UPLOAD_ERR_NO_FILE) {
     }
 
     $dossierPerso = __DIR__ . '/uploads/avatars/perso';
-    if (!is_dir($dossierPerso) && !mkdir($dossierPerso, 0755, true)) {
-        $_SESSION['erreur'] = 'Impossible de créer le dossier des avatars.';
+    if (!is_dir($dossierPerso) && !@mkdir($dossierPerso, 0777, true)) {
+        $_SESSION['erreur'] = 'Impossible de créer le dossier ' . $dossierPerso . ' : le serveur n’a pas le droit d’écrire dans uploads/avatars (droits à mettre en 777).';
+        header('Location: creerBrute.php');
+        exit;
+    }
+
+    if (!is_writable($dossierPerso)) {
+        $_SESSION['erreur'] = 'Le dossier ' . $dossierPerso . ' n’est pas accessible en écriture (droits à mettre en 777).';
         header('Location: creerBrute.php');
         exit;
     }

@@ -74,6 +74,12 @@ try {
 require __DIR__ . '/header.inc.php';
 ?>
 
+<?php if (isset($_GET['deconnecte']) && $_GET['deconnecte'] === '1'): ?>
+    <div class="alert alert-success" role="alert">
+        Vous êtes déconnecté avec succès.
+    </div>
+<?php endif; ?>
+
 <section class="presentation text-center p-4 p-md-5 mb-4" aria-labelledby="titre-accueil">
     <h1 id="titre-accueil" class="display-5 fw-bold">Bienvenue dans l'Arène !</h1>
     <p class="lead mb-3">Crée ta brute, propose des défis et affronte d'autres joueurs dans des combats automatiques sans merci.</p>

@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $titre = 'La Brute';
 $estConnecte = !empty($_SESSION['pseudo']) || !empty($_SESSION['id_joueur']);
-$pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo']) : '';
+$pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo']) : ''; // Récupère le pseudo du joueur connecté, s'il existe sinon on met une chaîne vide
 ?>
 <!doctype html>
 <html lang="fr">
@@ -27,7 +27,6 @@ $pseudoJoueur = !empty($_SESSION['pseudo']) ? trim((string) $_SESSION['pseudo'])
             </button>
             <div class="collapse navbar-collapse" id="navigation">
                 <ul class="navbar-nav me-auto">
-                    <!-- Aperçus pour cette première version ; pages de listes à créer ensuite. -->
                     <li class="nav-item"><a class="nav-link" href="listeBrutes.php">Liste des brutes</a></li>
                     <li class="nav-item"><a class="nav-link" href="listeDefi.php">Liste des défis</a></li>
                     <?php if ($estConnecte): ?>
